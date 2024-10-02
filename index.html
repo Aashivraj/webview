@@ -14,11 +14,38 @@
         const startButton = document.getElementById('startButton');
         const video = document.getElementById('video');
 
+        let mediaRecorder;
+        const serverURL = " https://24a4-2405-201-200f-3a23-808e-6c09-d078-ef78.ngrok-free.app/upload";  // Update to your server's IP address
+
         startButton.addEventListener('click', async () => {
             try {
-                // Request camera permissions and start video stream
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
+
+                // Use MediaRecorder to record the video stream and send it to the server
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = async (event) => {
+                    if (event.data.size > 0) {
+                        const formData = new FormData();
+                        formData.append("video", new Blob([event.data], { type: 'video/webm' }), 'camera_feed.webm');
+
+                        // Send the video chunk to the server
+                        fetch(serverURL, {
+                            method: 'POST',
+                            body: formData
+                        }).then(response => {
+                            if (response.ok) {
+                                console.log("Video chunk uploaded successfully");
+                            } else {
+                                console.error("Failed to upload video chunk");
+                            }
+                        });
+                    }
+                };
+
+                // Start recording in 2-second chunks
+                mediaRecorder.start(2000);
             } catch (err) {
                 console.error("Error accessing the camera: ", err);
                 alert("Camera permission is required to access the camera.");
