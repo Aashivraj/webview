@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera Access</title>
+    <title>Live Camera Feed</title>
 </head>
 <body>
-    <h1>iOS Camera Access in WebView</h1>
+    <h1>iOS Camera Live Feed</h1>
     <video id="video" width="600" height="400" autoplay></video>
     <button id="startButton">Start Camera</button>
 
@@ -15,37 +15,34 @@
         const video = document.getElementById('video');
 
         let mediaRecorder;
-        const serverURL = " https://24a4-2405-201-200f-3a23-808e-6c09-d078-ef78.ngrok-free.app/upload";  // Update to your server's IP address
+        const serverURL = "https://<your-ngrok-url>/video_feed";  // Replace with your Ngrok URL
 
         startButton.addEventListener('click', async () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
 
-                // Use MediaRecorder to record the video stream and send it to the server
                 mediaRecorder = new MediaRecorder(stream);
-
-                mediaRecorder.ondataavailable = async (event) => {
+                mediaRecorder.ondataavailable = (event) => {
                     if (event.data.size > 0) {
                         const formData = new FormData();
-                        formData.append("video", new Blob([event.data], { type: 'video/webm' }), 'camera_feed.webm');
+                        formData.append("video", event.data);
 
-                        // Send the video chunk to the server
+                        // Send the video stream to the Flask server continuously
                         fetch(serverURL, {
                             method: 'POST',
                             body: formData
                         }).then(response => {
                             if (response.ok) {
-                                console.log("Video chunk uploaded successfully");
+                                console.log("Video stream data sent successfully");
                             } else {
-                                console.error("Failed to upload video chunk");
+                                console.error("Failed to send video stream data");
                             }
                         });
                     }
                 };
-
-                // Start recording in 2-second chunks
-                mediaRecorder.start(2000);
+                
+                mediaRecorder.start(1000);  // Record video chunks in intervals of 1 second
             } catch (err) {
                 console.error("Error accessing the camera: ", err);
                 alert("Camera permission is required to access the camera.");
