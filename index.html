@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Access</title>
+</head>
+<body>
+    <h1>iOS Camera Access in WebView</h1>
+    <video id="video" width="600" height="400" autoplay></video>
+    <button id="startButton">Start Camera</button>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const video = document.getElementById('video');
+
+        startButton.addEventListener('click', async () => {
+            try {
+                // Request camera permissions and start video stream
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing the camera: ", err);
+                alert("Camera permission is required to access the camera.");
+            }
+        });
+    </script>
+</body>
+</html>
